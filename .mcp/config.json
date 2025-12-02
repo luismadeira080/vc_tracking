@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "supabase-postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "${SUPABASE_CONNECTION_STRING}"
+      },
+      "description": "PostgreSQL MCP server for Supabase database access"
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "description": "Fetch MCP server for retrieving external documentation"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/luismadeira/Documents/micro-saas"],
+      "description": "Filesystem access for reading/writing project files"
+    }
+  }
+}

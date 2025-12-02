@@ -1,0 +1,298 @@
+# VC LinkedIn Intelligence Platform - AI Assistant Rules
+
+## Critical: Always Read Documentation First
+
+- BEFORE any database operation: Read `docs/schema.md`
+- BEFORE changing data flow: Read `docs/architecture.md`
+- BEFORE implementing business logic: Read `docs/project_goals.md`
+
+These documents are the source of truth. Context deterioration happens when AI assistants ignore these files.
+
+## Tech Stack Standards
+
+- **TypeScript**: Strict mode, no `any` types (use `unknown` if truly needed)
+- **Next.js**: App Router only, Server Components by default
+- **Supabase**:
+  - Server-side: Use `lib/supabase/server.ts`
+  - Client-side: Use `lib/supabase/client.ts`
+  - Never instantiate Supabase clients directly in components
+- **Styling**: Tailwind CSS utility classes only (no custom CSS files)
+- **Icons**: lucide-react only (consistent icon family)
+- **Dates**: date-fns for formatting and manipulation
+- **Charts**: recharts for data visualization
+
+## Code Organization
+
+### Server vs Client Components
+
+- **Default**: Server Components (no 'use client' directive)
+- **Server Components** for:
+  - Data fetching from Supabase
+  - Layouts and static content
+  - SEO-critical pages
+- **Client Components** ('use client') only when:
+  - Interactive state (useState, useReducer)
+  - Browser APIs (window, localStorage)
+  - Event handlers (onClick, onChange)
+  - Third-party libraries requiring browser context
+
+### API Routes
+
+- Keep API routes thin
+- Delegate business logic to `lib/utils/` or `lib/supabase/queries.ts`
+- No direct SQL in API routes - use query functions
+- Always validate input (Zod recommended)
+- Always handle errors with structured responses
+
+Example:
+
+```typescript
+// ❌ Bad: Logic in API route
+export async function POST(request: Request) {
+  const supabase = createServerClient();
+  const data = await request.json();
+  const result = await supabase.from('posts').insert(data);
+  return Response.json(result);
+}
+
+// ✅ Good: Delegate to query function
+export async function POST(request: Request) {
+  const data = await request.json();
+  const result = await createPost(data);
+  return Response.json(result);
+}
+```
+
+### Database Access
+
+- **NO raw SQL in components** (except SQL Editor for migrations)
+- Use query functions in `lib/supabase/queries.ts`
+- Always join related tables in queries (avoid N+1)
+- Use TypeScript types from `types/index.ts`
+
+Example:
+
+```typescript
+// ❌ Bad: Inline query in component
+const { data } = await supabase.from('posts').select('*');
+
+// ✅ Good: Use query function
+import { getWeeklyPosts } from '@/lib/supabase/queries';
+const posts = await getWeeklyPosts();
+```
+
+## Business Logic
+
+### Post Categorization
+
+- **File**: `lib/utils/postCategorizer.ts`
+- **Function**: `categorizePost(text: string, categories: PostCategory[]): string`
+- **Logic**: Keyword matching (case-insensitive)
+- **Return**: Category slug (e.g., 'events', 'portfolio')
+
+### Engagement Scoring
+
+- **File**: `lib/utils/engagementCalculator.ts`
+- **Function**: `calculateEngagementScore(stats: PostStats): number`
+- **Formula**: `total_reactions + (comments × 2) + (reposts × 3)`
+- **Return**: Numeric score (0+)
+
+### Date Formatting
+
+- **Library**: date-fns
+- **Common formats**:
+  - Relative: `formatDistanceToNow(date, { addSuffix: true })`
+  - Short: `format(date, 'MMM d, yyyy')`
+  - Full: `format(date, 'MMMM d, yyyy h:mm a')`
+
+## Naming Conventions
+
+### Files
+
+- Components: PascalCase (e.g., `PostCard.tsx`)
+- Utilities: camelCase (e.g., `postCategorizer.ts`)
+- API routes: kebab-case folders (e.g., `api/vc-companies/route.ts`)
+
+### Variables
+
+- camelCase for variables, functions
+- PascalCase for components, types, interfaces
+- UPPERCASE for constants
+
+### Database
+
+- snake_case for table/column names (PostgreSQL convention)
+- Plural table names (e.g., `vc_companies`, `posts`)
+
+## Component Structure
+
+### Server Component Template
+
+```typescript
+import { createClient } from '@/lib/supabase/server';
+import { PostCard } from '@/components/dashboard/PostCard';
+
+export default async function WeeklyFeed() {
+  const supabase = createClient();
+  const { data: posts } = await supabase
+    .from('posts')
+    .select('*, vc_companies(*), post_categories(*)')
+    .order('posted_at', { ascending: false });
+
+  return (
+    <div className="space-y-4">
+      {posts?.map((post) => (
+        <PostCard key={post.id} post={post} />
+      ))}
+    </div>
+  );
+}
+```
+
+### Client Component Template
+
+```typescript
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+
+export function InteractiveFilter() {
+  const [selected, setSelected] = useState<string>('all');
+
+  return (
+    <div>
+      <Button onClick={() => setSelected('events')}>
+        Events
+      </Button>
+    </div>
+  );
+}
+```
+
+## Error Handling
+
+### API Routes
+
+```typescript
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    const result = await processData(data);
+    return Response.json(result, { status: 200 });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    return Response.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Components
+
+```typescript
+const { data, error } = await supabase.from('posts').select();
+
+if (error) {
+  console.error('Database error:', error);
+  return <div>Error loading posts</div>;
+}
+
+if (!data || data.length === 0) {
+  return <div>No posts found</div>;
+}
+```
+
+## Performance Best Practices
+
+- Use Server Components by default (reduces client JS)
+- Implement pagination for long lists
+- Use `next/image` for images
+- Index database queries (see `docs/schema.md`)
+- Avoid fetching data in loops (use joins)
+
+## Security Best Practices
+
+- Never expose database credentials in client code
+- Use environment variables for secrets
+- Validate all user inputs
+- Sanitize data before inserting into database
+- Use Supabase RLS (Row Level Security) for production
+
+## Git Commit Messages
+
+Format: `type(scope): message`
+
+Types:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style (formatting, no logic change)
+- `refactor`: Code refactoring
+- `test`: Add/update tests
+- `chore`: Build process, dependencies
+
+Examples:
+- `feat(dashboard): add weekly posts feed`
+- `fix(api): correct engagement score calculation`
+- `docs(schema): update posts table description`
+
+## Common Pitfalls
+
+### ❌ Don't
+
+- Use `any` type in TypeScript
+- Create Supabase clients directly in components
+- Write raw SQL in components
+- Use custom CSS (use Tailwind)
+- Fetch data in Client Components (use Server Components)
+- Ignore TypeScript errors
+- Commit `.env.local` to git
+
+### ✅ Do
+
+- Use strict TypeScript types
+- Use `lib/supabase/client.ts` or `lib/supabase/server.ts`
+- Use query functions from `lib/supabase/queries.ts`
+- Use Tailwind utility classes
+- Fetch data in Server Components
+- Fix TypeScript errors before committing
+- Use `.env.local.example` as template
+
+## Testing (Future)
+
+When implementing tests:
+- Use Vitest for unit tests
+- Use Playwright for E2E tests
+- Test business logic functions (categorizer, calculator)
+- Mock Supabase in tests
+
+## Deployment Checklist
+
+Before deploying to production:
+- [ ] Update RLS policies (restrict access)
+- [ ] Set environment variables on hosting platform
+- [ ] Test webhook endpoint with real n8n data
+- [ ] Verify database migrations applied
+- [ ] Check for console.log statements (remove or replace with proper logging)
+- [ ] Enable HTTPS only
+- [ ] Set up monitoring (Sentry, LogRocket)
+
+## AI Assistant Guidelines
+
+When generating code:
+1. Always check existing patterns first
+2. Read relevant docs before implementing features
+3. Follow this style guide strictly
+4. Ask clarifying questions if requirements are ambiguous
+5. Provide code comments for complex logic
+6. Test code mentally before suggesting it
+
+## Resources
+
+- [Next.js App Router Docs](https://nextjs.org/docs/app)
+- [Supabase SSR Guide](https://supabase.com/docs/guides/auth/server-side-rendering)
+- [Tailwind CSS Docs](https://tailwindcss.com/docs)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
