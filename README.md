@@ -1,6 +1,29 @@
 # VC LinkedIn Intelligence Platform
 
-A Next.js application for monitoring and analyzing LinkedIn content from competitor VC firms.
+A Next.js application for monitoring and analyzing LinkedIn content from Portuguese venture capital firms.
+
+## 🎯 Project Status: **DEPLOYED & READY FOR TESTING** ✅
+
+**Live URL**: https://vc-tracking.vercel.app
+
+### ✅ Completed
+- Database schema with 3 tables (vc_companies, post_categories, posts)
+- Next.js dashboard with weekly feed, company pages, and insights
+- Webhook API endpoint for receiving LinkedIn data
+- Deployed to Vercel with environment variables configured
+- n8n workflow structure ready (awaiting final webhook configuration)
+
+### 🔄 In Progress
+- Finalizing n8n webhook JSON body syntax
+- Testing end-to-end data flow from Apify → n8n → Next.js
+
+### 📋 Next Steps
+1. Complete n8n webhook configuration
+2. Set up Apify account and API token
+3. Run test scrape with 13 Portuguese VCs
+4. Verify posts appear in production dashboard
+
+---
 
 ## Overview
 
@@ -19,28 +42,35 @@ This platform helps venture capital firms track competitor content strategies on
 - **Charts**: Recharts
 - **Icons**: Lucide React
 - **Date Utilities**: date-fns
+- **Deployment**: Vercel
 
 ## Project Structure
 
 ```
 micro-saas/
-├── .mcp/                   # Portable MCP server configuration
 ├── supabase/
 │   └── migrations/         # Database schema migrations (4 files)
-├── app/                    # Next.js App Router pages
+├── app/
+│   ├── dashboard/          # Dashboard pages (main, companies, insights)
+│   └── api/webhook/        # Webhook endpoint for n8n
 ├── components/
-│   ├── dashboard/          # Dashboard-specific components
-│   └── ui/                 # Reusable UI components
+│   ├── dashboard/          # Dashboard-specific components (Sidebar)
+│   └── ui/                 # Reusable UI components (Button, Card, Badge, Select)
 ├── lib/
 │   ├── supabase/           # Supabase clients and queries
 │   └── utils/              # Utility functions (categorizer, calculator, etc.)
 ├── types/                  # TypeScript type definitions
-└── docs/                   # Comprehensive documentation
-    ├── setup-mcp.md        # MCP server setup guide
-    ├── setup-supabase.md   # Supabase setup guide
-    ├── architecture.md     # System architecture
-    ├── schema.md           # Database schema details
-    └── project_goals.md    # Business logic and goals
+├── docs/                   # Documentation (7 files)
+│   ├── quick-start.md      # 30-minute setup guide ⭐ START HERE
+│   ├── architecture.md     # System architecture
+│   ├── schema.md           # Database schema details
+│   ├── project_goals.md    # Business logic and goals
+│   ├── n8n-setup-guide.md  # Complete n8n guide
+│   ├── n8n-workflow-explained.md  # How workflow loops work
+│   ├── portuguese-vc-list.md      # 13 tracked companies
+│   └── webhook-setup.md    # API reference
+├── workflows/              # n8n workflow JSON files
+└── data/                   # Data directory (gitignored)
 ```
 
 ## Quick Start
@@ -48,8 +78,10 @@ micro-saas/
 ### 1. Prerequisites
 
 - Node.js 18+ installed
-- A Supabase account (free tier works)
-- Claude CLI (optional, for MCP servers)
+- Supabase account (free tier)
+- Vercel account (for deployment)
+- n8n account (free tier) or self-hosted
+- Apify account (free trial)
 
 ### 2. Clone & Install
 
@@ -58,21 +90,7 @@ cd micro-saas
 npm install
 ```
 
-### 3. Set Up Supabase
-
-Follow the detailed guide: [`docs/setup-supabase.md`](docs/setup-supabase.md)
-
-Quick steps:
-1. Create a Supabase project
-2. Copy connection credentials
-3. Run database migrations
-
-```bash
-supabase link --project-ref [your-project-ref]
-supabase db push
-```
-
-### 4. Configure Environment Variables
+### 3. Environment Variables
 
 Copy the example file:
 
@@ -80,16 +98,15 @@ Copy the example file:
 cp .env.local.example .env.local
 ```
 
-Edit `.env.local` and add your Supabase credentials:
+Add your credentials:
 
-```
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_CONNECTION_STRING=postgresql://...
-WEBHOOK_SECRET=your-webhook-secret
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://exonxmdewywsqlwmrewb.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+WEBHOOK_SECRET=5cd66308c1557f0d56178db6265f7ed5b2a3eda14965367f0dcc53130254787d
 ```
 
-### 5. Run Development Server
+### 4. Run Development Server
 
 ```bash
 npm run dev
@@ -97,43 +114,95 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+### 5. Deploy to Production
+
+See `docs/quick-start.md` for complete deployment guide.
+
+**Vercel Setup:**
+1. Connect GitHub repo to Vercel
+2. Add environment variables in Vercel dashboard:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `WEBHOOK_SECRET`
+3. Deploy automatically on push to `main`
+
 ## Documentation
+
+**Start here:** [`docs/quick-start.md`](docs/quick-start.md) - Complete 30-minute setup guide
 
 All documentation is in the `docs/` directory:
 
-- **[setup-mcp.md](docs/setup-mcp.md)**: Configure MCP servers for AI assistants
-- **[setup-supabase.md](docs/setup-supabase.md)**: Complete Supabase setup guide
 - **[architecture.md](docs/architecture.md)**: System architecture and data flow
 - **[schema.md](docs/schema.md)**: Database schema specifications
 - **[project_goals.md](docs/project_goals.md)**: Business logic and feature requirements
+- **[n8n-setup-guide.md](docs/n8n-setup-guide.md)**: Complete n8n workflow setup
+- **[n8n-workflow-explained.md](docs/n8n-workflow-explained.md)**: How the loop workflow works
+- **[portuguese-vc-list.md](docs/portuguese-vc-list.md)**: All 13 tracked Portuguese VCs
+- **[webhook-setup.md](docs/webhook-setup.md)**: Webhook API reference
 
 ## Key Features
 
-### Phase 1 (Current - Foundation Complete ✅)
+### ✅ Phase 1: Foundation (COMPLETE)
 
-- ✅ Portable MCP configuration for AI tools
-- ✅ Database schema with 3 tables (vc_companies, post_categories, posts)
+- ✅ Database schema with 3 tables
 - ✅ TypeScript types matching LinkedIn JSON structure
 - ✅ Supabase SSR clients (server & browser)
 - ✅ Utility functions (categorizer, engagement calculator)
 - ✅ Comprehensive documentation
 - ✅ Context preservation system (`.cursorrules`)
 
-### Phase 2 (Next - UI & Dashboard)
+### ✅ Phase 2: Dashboard (COMPLETE)
 
-- [ ] Landing page with overview
-- [ ] Dashboard layout with sidebar navigation
-- [ ] Weekly posts feed
-- [ ] Individual VC company pages
-- [ ] Performance insights page
-- [ ] Filtering and sorting
+- ✅ Landing page redirecting to dashboard
+- ✅ Dashboard layout with sidebar navigation
+- ✅ Weekly posts feed with media preview
+- ✅ Individual VC company pages
+- ✅ Performance insights page
+- ✅ Filtering and sorting
 
-### Phase 3 (Future - Automation)
+### ✅ Phase 3: Deployment (COMPLETE)
 
-- [ ] Webhook endpoint for n8n
-- [ ] n8n workflow setup
-- [ ] Apify LinkedIn scraper integration
-- [ ] Automated daily ingestion
+- ✅ Webhook endpoint for n8n (`/api/webhook`)
+- ✅ Deployed to Vercel (https://vc-tracking.vercel.app)
+- ✅ Environment variables configured
+- ✅ TypeScript build passing
+- ✅ Production-ready
+
+### 🔄 Phase 4: Automation (IN PROGRESS)
+
+- ✅ n8n workflow structure created
+- ✅ Google Sheets integration for company list
+- ✅ Apify scraper nodes configured
+- 🔄 Webhook node JSON body finalization
+- ⏳ Apify account setup
+- ⏳ First test run with Portuguese VCs
+
+### 📋 Phase 5: Future Enhancements
+
+- [ ] Real-time updates via Supabase subscriptions
+- [ ] AI-powered insights (GPT-4 summarization)
+- [ ] Email alerts for viral posts
+- [ ] Export reports (PDF/CSV)
+- [ ] Multi-tenancy support
+
+## Tracked Companies
+
+**13 Portuguese VC Firms:**
+1. Indico Capital Partners
+2. Crest Capital Partners
+3. Oxy Capital
+4. BlueCrow
+5. Shilling VC
+6. Portugal Ventures
+7. Armilar Venture Partners
+8. Bynd Venture Capital
+9. Iberis Capital
+10. Lince Capital
+11. Explorer Investments
+12. Draycott
+13. Faber
+
+**Expected volume:** ~40-50 posts per week total (3-4 posts/week per VC)
 
 ## Database Schema
 
@@ -153,7 +222,7 @@ Lookup table for post categorization.
 
 LinkedIn posts with full metadata.
 
-**Columns**: `id`, `vc_company_id`, `category_id`, `activity_urn`, `post_url`, `text_content`, `posted_at`, `engagement_score`, `stats` (JSONB), `raw_data` (JSONB), and more.
+**Columns**: `id`, `vc_company_id`, `category_id`, `activity_urn`, `post_url`, `text_content`, `posted_at`, `engagement_score`, `stats` (JSONB), `media` (JSONB), `raw_data` (JSONB), and more.
 
 See [`docs/schema.md`](docs/schema.md) for full details.
 
@@ -169,11 +238,44 @@ Posts are auto-categorized using keyword matching:
 - **Thought Leadership**: "insight", "trend", "perspective", etc.
 - **Hiring**: "job", "career", "opportunity", etc.
 
+**File**: `lib/utils/postCategorizer.ts`
+
 ### Engagement Scoring
 
-Formula: `total_reactions + (comments × 2) + (reposts × 3)`
+**Formula**: `total_reactions + (comments × 2) + (reposts × 3)`
 
 Weighted to prioritize deeper engagement (comments, reposts).
+
+**File**: `lib/utils/engagementCalculator.ts`
+
+## API Endpoints
+
+### Webhook Endpoint
+
+**URL**: `https://vc-tracking.vercel.app/api/webhook`
+
+**Method**: `POST`
+
+**Authentication**: Bearer token
+
+**Expected Payload**:
+```json
+{
+  "posts": [
+    {
+      "activity_urn": "urn:li:activity:...",
+      "post_url": "https://linkedin.com/...",
+      "text": "Post content",
+      "posted_at": { "timestamp": 1733011200000 },
+      "author": { "name": "Company Name", ... },
+      "stats": { "total_reactions": 100, "comments": 5, "reposts": 2 },
+      ...
+    }
+  ]
+}
+```
+
+See [`docs/webhook-setup.md`](docs/webhook-setup.md) for complete API reference.
 
 ## Development
 
@@ -195,30 +297,55 @@ Always read the relevant documentation first:
 - Data flow changes? Read `docs/architecture.md`
 - Feature changes? Read `docs/project_goals.md`
 
-## MCP Server Configuration
+### Testing Locally
 
-This project includes portable MCP server configuration in `.mcp/config.json`.
+```bash
+# Run dev server
+npm run dev
 
-MCP servers enable AI assistants (like Claude) to:
-- Query the database directly
-- Fetch external documentation
-- Read/write project files
+# Test webhook health
+curl http://localhost:3000/api/webhook
 
-See [`docs/setup-mcp.md`](docs/setup-mcp.md) for setup instructions.
+# Test with sample data
+curl -X POST http://localhost:3000/api/webhook \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer 5cd66308c1557f0d56178db6265f7ed5b2a3eda14965367f0dcc53130254787d" \
+  -d @test-webhook.json
+```
 
 ## Deployment
 
-### Vercel (Recommended)
+### Current Deployment
 
-1. Connect GitHub repository to Vercel
-2. Add environment variables in Vercel dashboard
-3. Deploy
+**Platform**: Vercel
+**URL**: https://vc-tracking.vercel.app
+**Branch**: `main` (auto-deploy enabled)
 
-### Other Platforms
+### Environment Variables (Vercel)
 
-- Netlify
-- AWS Amplify
-- Self-hosted (Docker + Node.js)
+Set in Vercel Dashboard → Settings → Environment Variables:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://exonxmdewywsqlwmrewb.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+WEBHOOK_SECRET=5cd66308c1557f0d56178db6265f7ed5b2a3eda14965367f0dcc53130254787d
+```
+
+**Note**: Set for all environments (Production, Preview, Development)
+
+### Cost Estimate
+
+**Development/Testing**: Free
+- Supabase: Free tier
+- Vercel: Free tier
+- n8n: Free tier (5,000 executions/month)
+- Apify: $5 free credit
+
+**Production**: ~$5-8/month
+- Supabase: Free tier (sufficient)
+- Vercel: Free tier
+- n8n: Free tier (30 daily runs within limit)
+- Apify: ~$5-8/month (daily scraping)
 
 ## Contributing
 
@@ -226,6 +353,35 @@ See [`docs/setup-mcp.md`](docs/setup-mcp.md) for setup instructions.
 2. Follow commit message format: `type(scope): message`
 3. Test locally before committing
 4. Update documentation if needed
+
+## Git Workflow
+
+**Main Branch**: `main` (production-ready)
+
+**Commit Message Format**:
+```
+type(scope): message
+
+Examples:
+- feat(dashboard): add weekly posts feed
+- fix(api): correct engagement score calculation
+- docs(schema): update posts table description
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue**: Webhook returns 401 Unauthorized
+**Solution**: Verify Bearer token matches `WEBHOOK_SECRET` in `.env.local`
+
+**Issue**: No posts appearing in dashboard
+**Solution**: Check posts are recent (dashboard shows last 7 days only)
+
+**Issue**: Build fails on Vercel
+**Solution**: Ensure all environment variables are set in Vercel dashboard
+
+See `docs/quick-start.md` for more troubleshooting.
 
 ## License
 
@@ -237,4 +393,6 @@ For questions or support, contact the development team.
 
 ---
 
-**Built with ❤️ using Next.js, Supabase, and Claude Code**
+**Built with ❤️ using Next.js, Supabase, n8n, Apify, and Claude Code**
+
+**Last Updated**: December 5, 2025
