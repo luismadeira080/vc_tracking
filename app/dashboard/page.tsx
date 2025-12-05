@@ -73,9 +73,9 @@ export default async function DashboardPage() {
               )}
 
               <div className="flex items-center gap-6 text-sm text-zinc-500 dark:text-zinc-400">
-                <span>👍 {post.stats.numLikes || 0}</span>
-                <span>💬 {post.stats.numComments || 0}</span>
-                <span>🔄 {post.stats.numShares || 0}</span>
+                <span>👍 {post.stats.total_reactions || 0}</span>
+                <span>💬 {post.stats.comments || 0}</span>
+                <span>🔄 {post.stats.reposts || 0}</span>
               </div>
 
               {post.post_url && (
