@@ -18,14 +18,14 @@ The VC LinkedIn Intelligence Platform is a Next.js application that monitors and
 
 ```
 ┌─────────┐      ┌─────────┐      ┌──────────────┐      ┌────────────┐      ┌──────────┐
-│ LinkedIn│ ───> │  Apify  │ ───> │     n8n      │ ───> │  Supabase  │ ───> │ Next.js  │
-│  Pages  │      │ Scraper │      │  Automation  │      │ PostgreSQL │      │Dashboard │
+│ LinkedIn│ ───> │  Apify  │ ───> │     n8n      │ ───> │  Next.js   │ ───> │ Supabase │
+│  Pages  │      │ Scraper │      │  Automation  │      │  Webhook   │      │PostgreSQL│
 └─────────┘      └─────────┘      └──────────────┘      └────────────┘      └──────────┘
      │                                     │                     │                  │
      │                                     │                     │                  │
-  Scrapes                            Transforms             Stores           Displays
-VC Company                           JSON data              Posts            Analytics
-   Posts                         Calculates scores      & Companies         & Insights
+  Scrapes                            Sends raw           Categorizes          Stores
+VC Company                            JSON to            Calculates           Posts &
+   Posts                             webhook              scores            Companies
 ```
 
 ### Detailed Flow
@@ -38,21 +38,24 @@ VC Company                           JSON data              Posts            Ana
 
 2. **n8n Automation**
    - Receives JSON from Apify webhook
-   - Transforms data structure
-   - Calculates engagement scores
-   - Auto-categorizes posts using keyword matching
-   - Upserts VC company (if new)
-   - Inserts post into Supabase via webhook endpoint
+   - Sends raw data to Next.js webhook endpoint (no transformation)
 
-3. **Supabase (PostgreSQL)**
+3. **Next.js Webhook API** (`/api/webhook`)
+   - Receives raw LinkedIn post data from n8n
+   - Auto-categorizes posts using keyword matching
+   - Calculates engagement scores with weighted formula
+   - Upserts VC companies (creates if new)
+   - Stores posts in Supabase
+   - Skips duplicates (idempotent)
+
+4. **Supabase (PostgreSQL)**
    - Stores VC companies, posts, and categories
    - Full raw JSON stored in `raw_data` JSONB column
    - Indexes optimized for common queries
    - Row Level Security (RLS) enabled
 
-4. **Next.js Application**
+5. **Next.js Application**
    - Server Components fetch data directly from Supabase
-   - API routes handle webhook ingestion from n8n
    - Client Components for interactive filters and charts
    - Real-time updates via Supabase subscriptions (future)
 

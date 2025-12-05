@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# project-specific
+/data/*.json
+!/data/.gitkeep
+/workflows/*.json
+!/workflows/.gitkeep
+/supabase/.temp/

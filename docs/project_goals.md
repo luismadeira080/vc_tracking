@@ -240,44 +240,42 @@ This prevents large companies from always dominating top posts.
    - Extracts last 50 posts per company
    - Sends JSON to n8n webhook
 
-2. **n8n Receives Data**
-   - Validates JSON structure
-   - Extracts `author` object (company metadata)
-   - Calculates `engagement_score`
-   - Categorizes post using keyword matching
-   - Transforms JSON to match database schema
-
-3. **n8n Calls Webhook Endpoint**
+2. **n8n Sends Data to Webhook**
    - POST to `/api/webhook`
-   - Headers: `{ "x-webhook-secret": "..." }`
-   - Body:
+   - Headers: `{ "Authorization": "Bearer <secret>" }`
+   - Body: Raw LinkedIn posts array from Apify
      ```json
      {
-       "company": {
-         "name": "Shilling VC",
-         "linkedin_url": "...",
-         "logo_url": "...",
-         "follower_count": 10890
-       },
-       "post": {
-         "activity_urn": "...",
-         "post_url": "...",
-         "text": "...",
-         "posted_at": "2025-11-25T10:00:03Z",
-         "stats": { /* ... */ },
-         "engagement_score": 116,
-         "category_slug": "events",
-         "raw_data": { /* full JSON */ }
-       }
+       "posts": [
+         {
+           "activity_urn": "...",
+           "post_url": "...",
+           "text": "...",
+           "posted_at": { "timestamp": 1764061203774 },
+           "author": {
+             "name": "Shilling VC",
+             "company_url": "...",
+             "logo_url": "...",
+             "follower_count": 10890
+           },
+           "stats": {
+             "total_reactions": 100,
+             "comments": 5,
+             "reposts": 2
+           }
+         }
+       ]
      }
      ```
 
-4. **Next.js API Route**
+3. **Next.js Webhook API** (`/api/webhook`)
    - Validates webhook secret
-   - Upserts VC company (by `linkedin_url`)
-   - Finds `category_id` by slug
-   - Inserts post (skip if `activity_urn` exists)
-   - Returns 200 OK
+   - For each post:
+     - Upserts VC company (creates if new)
+     - Categorizes post using keyword matching
+     - Calculates engagement score: `reactions + (comments × 2) + (reposts × 3)`
+     - Inserts post (skips if `activity_urn` exists)
+   - Returns results summary
 
 **Error Handling**:
 - Invalid secret → 401 Unauthorized

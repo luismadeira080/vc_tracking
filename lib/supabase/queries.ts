@@ -5,7 +5,7 @@ import type { Post, PostWithRelations, VCCompany, PostCategory } from '@/types';
  * Get all tracked VC companies
  */
 export async function getTrackedCompanies() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('vc_companies')
@@ -21,7 +21,7 @@ export async function getTrackedCompanies() {
  * Get posts from the last N days
  */
 export async function getRecentPosts(days: number = 7, companyId?: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const dateThreshold = new Date();
   dateThreshold.setDate(dateThreshold.getDate() - days);
 
@@ -45,7 +45,7 @@ export async function getRecentPosts(days: number = 7, companyId?: string) {
  * Get top performing posts by engagement score
  */
 export async function getTopPosts(limit: number = 10, days?: number) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   let query = supabase
     .from('posts')
@@ -69,7 +69,7 @@ export async function getTopPosts(limit: number = 10, days?: number) {
  * Get all posts for a specific VC company
  */
 export async function getCompanyPosts(companySlug: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('posts')
@@ -85,7 +85,7 @@ export async function getCompanyPosts(companySlug: string) {
  * Get VC company by slug
  */
 export async function getCompanyBySlug(slug: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('vc_companies')
@@ -101,7 +101,7 @@ export async function getCompanyBySlug(slug: string) {
  * Get all post categories
  */
 export async function getCategories() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('post_categories')
