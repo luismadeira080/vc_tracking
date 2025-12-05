@@ -102,56 +102,70 @@ docker run -it --rm --name n8n -p 5678:5678 -v ~/.n8n:/home/node/.n8n docker.n8n
 ## 📊 What to Expect
 
 ### First Run
-- **Duration**: 30-90 seconds
-- **Posts scraped**: 100-200 posts (10 companies × 20 posts)
-- **Companies created**: ~10
-- **Cost**: ~$0.10
+- **Duration**: 10-12 minutes (13 companies sequential)
+- **Posts scraped**: 5-10 posts per company (most recent)
+- **Companies created**: 13
+- **Cost**: ~$0.20
 
 ### After 7 Days
-- **Posts in database**: 700-1400
-- **Dashboard**: Fully populated
-- **Insights**: Meaningful analytics
-- **Trends**: Category breakdown visible
+- **Posts in database**: 40-50 posts
+- **Dashboard**: Showing recent activity
+- **Insights**: Initial patterns visible
+- **Categories**: Distribution emerging
+
+### After 1 Month
+- **Posts in database**: 160-200 posts
+- **Analytics**: Sufficient data for comparisons
+- **Top performers**: Clear engagement leaders identified
+- **Engagement patterns**: Monthly trends visible
 
 ---
 
 ## 🎯 Portuguese VCs (Pre-configured)
 
-Your workflow already includes:
+Your workflow already includes 13 companies:
 1. Indico Capital Partners
-2. Armilar Venture Partners
-3. Portugal Ventures
-4. Busy Angels
-5. Faber Ventures
-6. Shilling VC
-7. BYND Venture Capital
-8. Golden Ventures
-9. Maze X
-10. Seedrs
+2. Crest Capital Partners
+3. Oxy Capital
+4. BlueCrow
+5. Shilling VC
+6. Portugal Ventures
+7. Armilar Venture Partners
+8. Bynd Venture Capital
+9. Iberis Capital
+10. Lince Capital
+11. Explorer Investments
+12. Draycott
+13. Faber
+
+**Expected volume:** ~40-50 posts per week from all companies (3-4 posts/week per VC)
 
 ---
 
 ## 🔍 Testing Checklist
 
-### Test Webhook
-```bash
-curl http://localhost:3000/api/webhook
-# Should return: {"status":"ok","message":"Webhook endpoint is active"}
-```
+Before going live, verify:
 
-### Test with Sample Data
-```bash
-curl -X POST http://localhost:3000/api/webhook \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer 5cd66308c1557f0d56178db6265f7ed5b2a3eda14965367f0dcc53130254787d" \
-  -d @test-webhook.json
-```
+### Backend Tests
+- [ ] Webhook health check: `curl http://localhost:3000/api/webhook`
+- [ ] Test with sample data: `curl -X POST ... @test-webhook.json`
+- [ ] Supabase tables exist (vc_companies, posts, post_categories)
 
-### Check Dashboard
-- Open http://localhost:3000
-- Should redirect to `/dashboard`
-- Click "Companies" - see list
-- Click "Insights" - see stats
+### Frontend Tests
+- [ ] Dashboard loads: http://localhost:3000
+- [ ] Companies page works: http://localhost:3000/dashboard/companies
+- [ ] Insights page shows stats: http://localhost:3000/dashboard/insights
+- [ ] Media preview displays post images
+
+### n8n Tests
+- [ ] Apify account created & token saved
+- [ ] n8n instance running (cloud or local)
+- [ ] Workflow imported successfully
+- [ ] Company List node shows 13 companies
+- [ ] Apify token configured in workflow
+- [ ] Webhook URL points to correct endpoint
+- [ ] Test workflow runs without errors
+- [ ] Posts appear in dashboard after test run
 
 ---
 
@@ -172,20 +186,34 @@ curl -X POST http://localhost:3000/api/webhook \
 
 ---
 
-## 🚨 Common Issues
+## 🚨 Common Issues & Solutions
 
-### n8n can't reach localhost webhook
-**Solution**: Use ngrok for testing
+### Issue: Webhook 401 Unauthorized
+**Solution:** Check Bearer token in n8n matches `WEBHOOK_SECRET` in `.env.local`
+
+### Issue: No posts appearing
+**Causes:**
+- LinkedIn URLs incorrect
+- Companies have no recent posts
+- Posts older than 7 days (dashboard shows last 7 days only)
+
+**Solution:** Check n8n execution logs, verify LinkedIn URLs manually
+
+### Issue: n8n timeout
+**Solution:** Increase timeout to 300000 (5 min) in Apify node settings
+
+### Issue: Media images not loading
+**Solution:** Check `media.images` array exists in raw post data from Apify
+
+### Issue: Some companies fail to scrape
+**Expected:** Normal! Some VCs may have privacy settings or no posts. Workflow continues with others.
+
+### Issue: n8n can't reach localhost webhook
+**Solution:** Use ngrok for testing
 ```bash
 ngrok http 3000
 # Use ngrok URL in n8n: https://abc123.ngrok.io/api/webhook
 ```
-
-### Apify returns no data
-**Solution**: Check company URLs on LinkedIn manually
-
-### Webhook 401 error
-**Solution**: Verify Bearer token matches `WEBHOOK_SECRET`
 
 ---
 

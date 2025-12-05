@@ -1,15 +1,6 @@
-# Webhook Setup Guide
+# Webhook API Reference
 
-This guide explains how to set up the webhook endpoint to receive LinkedIn post data from n8n.
-
-## Overview
-
-The webhook endpoint accepts LinkedIn post data from the Apify scraper (via n8n) and automatically:
-1. Creates or updates VC companies
-2. Categorizes posts using keyword matching
-3. Calculates engagement scores
-4. Stores posts in the database
-5. Skips duplicates
+Complete API documentation for the LinkedIn post webhook endpoint.
 
 ## Endpoint Details
 
@@ -23,6 +14,8 @@ The webhook endpoint accepts LinkedIn post data from the Apify scraper (via n8n)
 Content-Type: application/json
 Authorization: Bearer YOUR_WEBHOOK_SECRET
 ```
+
+## Request Format
 
 ### Request Body
 
@@ -56,16 +49,42 @@ Authorization: Bearer YOUR_WEBHOOK_SECRET
         "comments": 45,
         "reposts": 30
       },
-      "media": {},
+      "media": {
+        "images": [
+          {
+            "url": "https://example.com/image.jpg"
+          }
+        ]
+      },
       "source_company": "Company Name"
     }
   ]
 }
 ```
 
-### Response
+### Required Fields
 
-#### Success (200)
+- `posts` (array): Array of post objects
+- `activity_urn` (string): Unique LinkedIn activity identifier
+- `post_url` (string): URL to LinkedIn post
+- `text` (string): Post content
+- `posted_at.timestamp` (number): Unix timestamp in milliseconds
+- `author.name` (string): Company name
+- `stats.total_reactions` (number): Total reaction count
+- `stats.comments` (number): Comment count
+- `stats.reposts` (number): Repost count
+
+### Optional Fields
+
+- `source_company` (string): Override company name
+- `author.follower_count` (number): LinkedIn follower count
+- `author.company_url` (string): LinkedIn company page URL
+- `author.logo_url` (string): Company logo URL
+- `media.images` (array): Array of image objects with `url` field
+
+## Response Format
+
+### Success (200)
 
 ```json
 {
@@ -79,7 +98,13 @@ Authorization: Bearer YOUR_WEBHOOK_SECRET
 }
 ```
 
-#### Authentication Error (401)
+**Fields:**
+- `success`: Number of posts successfully processed
+- `failed`: Number of posts that failed to process
+- `skipped`: Number of duplicate posts (already exist)
+- `errors`: Array of error messages
+
+### Authentication Error (401)
 
 ```json
 {
@@ -87,7 +112,7 @@ Authorization: Bearer YOUR_WEBHOOK_SECRET
 }
 ```
 
-#### Validation Error (400)
+### Validation Error (400)
 
 ```json
 {
@@ -95,7 +120,15 @@ Authorization: Bearer YOUR_WEBHOOK_SECRET
 }
 ```
 
-## Testing the Webhook
+or
+
+```json
+{
+  "error": "Invalid request body"
+}
+```
+
+## Testing
 
 ### Health Check
 
@@ -105,7 +138,7 @@ Test if the webhook is active:
 curl https://your-domain.com/api/webhook
 ```
 
-Response:
+**Expected Response:**
 ```json
 {
   "status": "ok",
@@ -122,7 +155,33 @@ curl -X POST https://your-domain.com/api/webhook \
   -d @test-webhook.json
 ```
 
-## Webhook Secret
+### Local Testing
+
+For local development:
+
+```bash
+# Start Next.js dev server
+npm run dev
+
+# Test webhook (in another terminal)
+curl -X POST http://localhost:3000/api/webhook \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer 5cd66308c1557f0d56178db6265f7ed5b2a3eda14965367f0dcc53130254787d" \
+  -d '{
+    "posts": [{
+      "activity_urn": "test:123",
+      "post_url": "https://linkedin.com/posts/test",
+      "text": "Test post",
+      "posted_at": {"timestamp": 1733011200000},
+      "author": {"name": "Test Company"},
+      "stats": {"total_reactions": 10, "comments": 2, "reposts": 1}
+    }]
+  }'
+```
+
+## Authentication
+
+### Webhook Secret
 
 Your webhook secret is stored in `.env.local`:
 
@@ -130,110 +189,70 @@ Your webhook secret is stored in `.env.local`:
 WEBHOOK_SECRET=5cd66308c1557f0d56178db6265f7ed5b2a3eda14965367f0dcc53130254787d
 ```
 
-**IMPORTANT**: Keep this secret secure. Anyone with this token can send data to your webhook.
+**IMPORTANT**:
+- Keep this secret secure
+- Never commit to version control
+- Anyone with this token can send data to your webhook
+- Rotate the secret if compromised
 
-## Post Categorization
+### Generating a New Secret
 
-Posts are automatically categorized based on keywords:
-
-- **Events**: conference, webinar, summit, workshop, meetup, event, panel
-- **Portfolio**: investment, portfolio, funding, raise, series, round, backed
-- **Founders**: founder, team, welcome, join, hiring, joined
-- **Thought Leadership**: insight, trend, perspective, future, prediction, analysis
-- **Hiring**: job, career, opportunity, position, role, opening
-- **Other**: Default category if no keywords match
-
-## Engagement Score Formula
-
-```
-score = total_reactions + (comments × 2) + (reposts × 3)
+```bash
+openssl rand -hex 32
 ```
 
-Reposts are weighted highest (3×) because they show the strongest endorsement.
+Update in `.env.local` and n8n workflow after generation.
 
-## n8n Workflow Setup
+## Webhook Behavior
 
-### 1. Create n8n Workflow
+### Automatic Processing
 
-1. **HTTP Request Node** (Apify)
-   - Method: POST
-   - URL: `https://api.apify.com/v2/acts/apify~linkedin-posts-scraper/run-sync-get-dataset-items`
-   - Headers: `Authorization: Bearer APIFY_API_TOKEN`
-   - Body: Company LinkedIn URLs to scrape
+The webhook automatically:
+1. ✅ Validates authentication token
+2. ✅ Creates or updates VC companies
+3. ✅ Categorizes posts using keyword matching
+4. ✅ Calculates engagement scores
+5. ✅ Stores posts in database
+6. ✅ Skips duplicates (based on `activity_urn`)
 
-2. **Transform Data Node**
-   - Map Apify response to webhook format
-   - Ensure all required fields are present
+### Duplicate Handling
 
-3. **HTTP Request Node** (Your Webhook)
-   - Method: POST
-   - URL: `https://your-domain.com/api/webhook`
-   - Headers:
-     ```
-     Content-Type: application/json
-     Authorization: Bearer YOUR_WEBHOOK_SECRET
-     ```
-   - Body: Transformed post data
+Posts are identified by `activity_urn`. If a post with the same URN already exists:
+- It's counted as "skipped"
+- No error is thrown
+- Idempotent behavior (safe to re-run)
 
-### 2. Schedule the Workflow
+### Company Creation
 
-Set the workflow to run:
-- **Daily** at 9am to capture recent posts
-- Or **Weekly** for less frequent updates
+If a company doesn't exist in the database:
+- Automatically created from `author.name` or `source_company`
+- Slug generated from company name
+- Logo and follower count saved if provided
 
-### 3. Monitor Results
+## Rate Limits
 
-Check the webhook response for:
-- `success`: Number of posts successfully processed
-- `failed`: Number of posts that failed
-- `skipped`: Number of duplicate posts
-- `errors`: Array of error messages
+**Current:** No rate limiting implemented
 
-## Troubleshooting
+**Recommended for production:**
+- 100 requests per minute
+- 1000 requests per hour
+- Implement using middleware or Vercel Edge Config
 
-### Posts not appearing in dashboard
+## Security
 
-1. Check webhook response for errors
-2. Verify posts were created: Check Supabase Table Editor → `posts`
-3. Check company was created: Check `vc_companies` table
-4. Verify `posted_at` timestamp is recent (dashboard shows last 7 days)
-
-### Authentication failures
-
-1. Verify `WEBHOOK_SECRET` matches in `.env.local`
-2. Check Authorization header format: `Bearer SECRET` (with space)
-3. Ensure secret is not exposed in logs or client-side code
-
-### Duplicate posts
-
-This is normal! The webhook automatically skips posts that already exist (based on `activity_urn`). This prevents data duplication when re-running n8n workflows.
-
-### Company not recognized
-
-The webhook automatically creates companies if they don't exist. Check:
-- `source_company` field in request payload
-- `author.name` field as fallback
-- Resulting slug in `vc_companies` table
-
-## Next Steps
-
-1. Deploy your Next.js app to production (Vercel recommended)
-2. Update n8n webhook URL to production domain
-3. Set up Apify account and get LinkedIn scraper API token
-4. Configure n8n workflow with company URLs to track
-5. Schedule automated runs
-6. Monitor dashboard for incoming posts
-
-## Security Considerations
-
-- ✅ Webhook uses Bearer token authentication
-- ✅ Secret stored in environment variable (not in code)
+### Current Implementation
+- ✅ Bearer token authentication
+- ✅ Secret stored in environment variable
 - ✅ HTTPS required in production
-- ⚠️ Rate limiting not implemented (consider adding if needed)
-- ⚠️ Request size limits (default Next.js limits apply)
+
+### Recommendations
+- Add request size limits (prevent large payload attacks)
+- Implement rate limiting
+- Log all webhook requests for auditing
+- Set up monitoring alerts for failed requests
 
 ## Resources
 
-- [Apify LinkedIn Scraper](https://apify.com/apify/linkedin-posts-scraper)
-- [n8n Documentation](https://docs.n8n.io/)
 - [Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
+- [Apify LinkedIn Scraper](https://apify.com/apify/linkedin-posts-scraper)
+- [n8n Webhook Documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/)
