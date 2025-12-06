@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
     // Process each post
     for (const post of posts) {
       try {
-        // Extract company name from source_company or author
-        const companyName = post.source_company || post.author.name;
+        // Extract company name from author (source_company contains URL)
+        const companyName = post.author.name || post.source_company;
         const companySlug = slugify(companyName);
 
         // Check if company exists, if not create it

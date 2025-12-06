@@ -66,8 +66,17 @@ export default async function DashboardPage() {
                 {post.text_content}
               </p>
 
-              {/* Media Preview */}
-              {post.media && post.media.images && post.media.images.length > 0 && (
+              {/* Media Preview - Check both document thumbnail and media images */}
+              {post.document?.thumbnail && (
+                <div className="mb-4">
+                  <img
+                    src={post.document.thumbnail}
+                    alt={post.document.title || 'Post document'}
+                    className="w-full h-48 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700"
+                  />
+                </div>
+              )}
+              {!post.document?.thumbnail && post.media?.images && post.media.images.length > 0 && (
                 <div className="mb-4 grid grid-cols-2 gap-2">
                   {post.media.images.slice(0, 4).map((image: any, idx: number) => (
                     <img
