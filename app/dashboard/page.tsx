@@ -28,17 +28,18 @@ export default async function DashboardPage() {
               key={post.id}
               className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6"
             >
+              {/* Header: Company info and metadata */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   {post.vc_companies?.logo_url ? (
                     <img
                       src={post.vc_companies.logo_url}
                       alt={post.vc_companies.name}
-                      className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                      className="w-12 h-12 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
                     />
                   ) : (
-                    <div className="w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">
+                    <div className="w-12 h-12 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
+                      <span className="text-lg font-semibold text-zinc-600 dark:text-zinc-300">
                         {post.vc_companies?.name.charAt(0)}
                       </span>
                     </div>
@@ -47,47 +48,59 @@ export default async function DashboardPage() {
                     <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">
                       {post.vc_companies?.name}
                     </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      {formatDistanceToNow(new Date(post.posted_at), { addSuffix: true })}
-                    </p>
+                    <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                      <span>{formatDistanceToNow(new Date(post.posted_at), { addSuffix: true })}</span>
+                      <span>•</span>
+                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                        {post.post_categories?.name}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                    {post.post_categories?.name}
-                  </span>
-                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                <div className="flex-shrink-0">
+                  <span className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
                     {post.engagement_score} 🔥
                   </span>
                 </div>
               </div>
 
-              <p className="text-zinc-700 dark:text-zinc-300 mb-4 line-clamp-4">
-                {post.text_content}
-              </p>
-
-              {/* Media Preview - Check both document thumbnail and media images */}
+              {/* Media Preview - Large and prominent */}
               {post.document?.thumbnail && (
-                <div className="mb-4">
+                <div className="mb-4 -mx-6">
                   <img
                     src={post.document.thumbnail}
                     alt={post.document.title || 'Post document'}
-                    className="w-full h-48 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700"
+                    className="w-full h-96 object-cover"
                   />
                 </div>
               )}
               {!post.document?.thumbnail && post.media?.images && post.media.images.length > 0 && (
-                <div className="mb-4 grid grid-cols-2 gap-2">
-                  {post.media.images.slice(0, 4).map((image: any, idx: number) => (
+                <div className="mb-4 -mx-6">
+                  {post.media.images.length === 1 ? (
                     <img
-                      key={idx}
-                      src={image.url || image}
+                      src={post.media.images[0].url || post.media.images[0]}
                       alt="Post media"
-                      className="w-full h-48 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700"
+                      className="w-full h-96 object-cover"
                     />
-                  ))}
+                  ) : (
+                    <div className="grid grid-cols-2 gap-1">
+                      {post.media.images.slice(0, 4).map((image: any, idx: number) => (
+                        <img
+                          key={idx}
+                          src={image.url || image}
+                          alt="Post media"
+                          className="w-full h-48 object-cover"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* Post text content */}
+              <p className="text-zinc-700 dark:text-zinc-300 mb-4 line-clamp-4 leading-relaxed">
+                {post.text_content}
+              </p>
 
               <div className="flex items-center gap-6 text-sm text-zinc-500 dark:text-zinc-400">
                 <span>👍 {post.stats.total_reactions || 0}</span>
