@@ -17,6 +17,10 @@ import type { LinkedInPostRaw, PostStats } from '@/types';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Log incoming request for debugging
+    console.log('🔔 Webhook received request');
+    console.log('Headers:', Object.fromEntries(request.headers.entries()));
+
     // Verify webhook secret
     const authHeader = request.headers.get('authorization');
     const webhookSecret = process.env.WEBHOOK_SECRET;
@@ -30,14 +34,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (!authHeader || authHeader !== `Bearer ${webhookSecret}`) {
+      console.log('❌ Auth failed:', authHeader);
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
+    console.log('✅ Authentication passed');
+
     // Parse request body
     const body = await request.json();
+    console.log('📦 Request body received:', JSON.stringify(body, null, 2));
+
     const { posts } = body as { posts: LinkedInPostRaw[] };
 
     if (!posts || !Array.isArray(posts) || posts.length === 0) {
