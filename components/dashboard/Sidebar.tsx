@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Home, Building2, TrendingUp } from 'lucide-react';
+import { Home, Building2, TrendingUp, FileText } from 'lucide-react';
 
 export function Sidebar() {
   return (
@@ -22,6 +22,15 @@ export function Sidebar() {
             >
               <Home size={20} />
               <span>Dashboard</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/dashboard/posts"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <FileText size={20} />
+              <span>Recent Posts</span>
             </Link>
           </li>
           <li>
