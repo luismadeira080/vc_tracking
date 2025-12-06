@@ -30,11 +30,19 @@ export default async function CompaniesPage() {
               className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
-                  <span className="text-lg font-semibold text-zinc-600 dark:text-zinc-300">
-                    {company.name.charAt(0)}
-                  </span>
-                </div>
+                {company.logo_url ? (
+                  <img
+                    src={company.logo_url}
+                    alt={company.name}
+                    className="w-12 h-12 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
+                    <span className="text-lg font-semibold text-zinc-600 dark:text-zinc-300">
+                      {company.name.charAt(0)}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">
                     {company.name}

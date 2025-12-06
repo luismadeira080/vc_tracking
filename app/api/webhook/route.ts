@@ -114,6 +114,19 @@ export async function POST(request: NextRequest) {
 
           if (createError) throw createError;
           company = newCompany;
+        } else {
+          // Update existing company with fresh data from LinkedIn
+          const { error: updateError } = await supabase
+            .from('vc_companies')
+            .update({
+              logo_url: post.author.logo_url || null,
+              follower_count: post.author.follower_count || 0,
+              linkedin_url: post.author.company_url || '',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', company.id);
+
+          if (updateError) console.error('Failed to update company:', updateError);
         }
 
         // Check if post already exists

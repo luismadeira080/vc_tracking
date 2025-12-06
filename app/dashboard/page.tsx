@@ -30,11 +30,19 @@ export default async function DashboardPage() {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">
-                      {post.vc_companies?.name.charAt(0)}
-                    </span>
-                  </div>
+                  {post.vc_companies?.logo_url ? (
+                    <img
+                      src={post.vc_companies.logo_url}
+                      alt={post.vc_companies.name}
+                      className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">
+                        {post.vc_companies?.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">
                       {post.vc_companies?.name}

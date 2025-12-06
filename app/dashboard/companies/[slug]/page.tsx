@@ -15,11 +15,19 @@ export default async function CompanyPage({ params }: { params: { slug: string }
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
-            <span className="text-2xl font-semibold text-zinc-600 dark:text-zinc-300">
-              {company.name.charAt(0)}
-            </span>
-          </div>
+          {company.logo_url ? (
+            <img
+              src={company.logo_url}
+              alt={company.name}
+              className="w-16 h-16 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+            />
+          ) : (
+            <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
+              <span className="text-2xl font-semibold text-zinc-600 dark:text-zinc-300">
+                {company.name.charAt(0)}
+              </span>
+            </div>
+          )}
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
               {company.name}

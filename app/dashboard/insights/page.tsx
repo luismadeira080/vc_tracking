@@ -109,6 +109,18 @@ export default async function InsightsPage() {
                       {post.engagement_score} 🔥
                     </span>
                   </div>
+                  {post.media && post.media.images && post.media.images.length > 0 && (
+                    <div className="mb-3 grid grid-cols-2 gap-2">
+                      {post.media.images.slice(0, 4).map((image: any, idx: number) => (
+                        <img
+                          key={idx}
+                          src={image.url || image}
+                          alt="Post media"
+                          className="w-full h-32 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700"
+                        />
+                      ))}
+                    </div>
+                  )}
                   <p className="text-zinc-700 dark:text-zinc-300 text-sm line-clamp-2 mb-3">
                     {post.text_content}
                   </p>
