@@ -70,43 +70,85 @@ export default async function CompanyPage({ params }: { params: { slug: string }
               key={post.id}
               className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6"
             >
-              <div className="flex items-start justify-between mb-4">
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {formatDistanceToNow(new Date(post.posted_at), { addSuffix: true })}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+              {/* Engagement metrics - Prominent at top */}
+              <div className="grid grid-cols-4 gap-3 mb-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+                <div>
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                    {post.engagement_score}
+                  </div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">TOTAL ENG.</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                    {post.stats.total_reactions || 0}
+                  </div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">LIKES</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                    {post.stats.comments || 0}
+                  </div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">COMMENTS</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                    {post.stats.reposts || 0}
+                  </div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">REPOSTS</div>
+                </div>
+              </div>
+
+              {/* Post metadata */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                  <span>{formatDistanceToNow(new Date(post.posted_at), { addSuffix: true })}</span>
+                  <span>•</span>
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                     {post.post_categories?.name}
-                  </span>
-                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                    {post.engagement_score} 🔥
                   </span>
                 </div>
               </div>
 
-              <p className="text-zinc-700 dark:text-zinc-300 mb-4">
-                {post.text_content}
-              </p>
-
-              {/* Media Preview */}
-              {post.media && post.media.images && post.media.images.length > 0 && (
-                <div className="mb-4 grid grid-cols-2 gap-2">
-                  {post.media.images.slice(0, 4).map((image: any, idx: number) => (
-                    <img
-                      key={idx}
-                      src={image.url || image}
-                      alt="Post media"
-                      className="w-full h-48 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700"
-                    />
-                  ))}
+              {/* Media Preview - Full image visible with margins */}
+              {post.document?.thumbnail && (
+                <div className="mb-4 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4">
+                  <img
+                    src={post.document.thumbnail}
+                    alt={post.document.title || 'Post document'}
+                    className="max-w-full h-auto max-h-[600px] object-contain rounded-lg"
+                  />
+                </div>
+              )}
+              {!post.document?.thumbnail && post.media?.images && post.media.images.length > 0 && (
+                <div className="mb-4">
+                  {post.media.images.length === 1 ? (
+                    <div className="flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4">
+                      <img
+                        src={post.media.images[0].url || post.media.images[0]}
+                        alt="Post media"
+                        className="max-w-full h-auto max-h-[600px] object-contain rounded-lg"
+                      />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {post.media.images.slice(0, 4).map((image: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-2">
+                          <img
+                            src={image.url || image}
+                            alt="Post media"
+                            className="max-w-full h-auto max-h-[300px] object-contain rounded-lg"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              <div className="flex items-center gap-6 text-sm text-zinc-500 dark:text-zinc-400">
-                <span>👍 {post.stats.total_reactions || 0}</span>
-                <span>💬 {post.stats.comments || 0}</span>
-                <span>🔄 {post.stats.reposts || 0}</span>
-              </div>
+              {/* Post text content */}
+              <p className="text-zinc-700 dark:text-zinc-300 mb-4 line-clamp-4 leading-relaxed">
+                {post.text_content}
+              </p>
 
               {post.post_url && (
                 <a
