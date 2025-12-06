@@ -113,18 +113,83 @@ app/
 components/
 ├── dashboard/
 │   ├── Sidebar.tsx               # Navigation with VC company list
-│   ├── DashboardHeader.tsx       # Top bar with filters (date range, category)
-│   ├── WeeklyPostsFeed.tsx       # Feed of posts (last 7 days)
-│   ├── PerformanceInsights.tsx   # Metrics cards (top posts, active companies)
-│   ├── PostCard.tsx              # Individual post display
-│   ├── CategoryBadge.tsx         # Colored badge for post category
-│   └── EngagementChart.tsx       # Recharts visualization
+│   └── (Future components)
 └── ui/
     ├── Button.tsx                # Reusable button component
     ├── Card.tsx                  # Card container
     ├── Badge.tsx                 # Badge component
     └── Select.tsx                # Dropdown select
 ```
+
+### Post Card Design Specification (CRITICAL - DO NOT MODIFY)
+
+**Applies to:** All pages displaying LinkedIn posts
+- `/dashboard` (main feed)
+- `/dashboard/insights` (top performers)
+- `/dashboard/companies/[slug]` (company-specific posts)
+
+**Standard Post Card Structure:**
+
+```tsx
+<article className="bg-white dark:bg-zinc-900 rounded-lg border p-6">
+  {/* 1. Engagement Metrics Grid - ALWAYS AT TOP */}
+  <div className="grid grid-cols-4 gap-3 mb-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+    <div>
+      <div className="text-2xl font-bold">{post.engagement_score}</div>
+      <div className="text-xs text-zinc-500">TOTAL ENG.</div>
+    </div>
+    <div>
+      <div className="text-2xl font-bold">{post.stats.total_reactions}</div>
+      <div className="text-xs text-zinc-500">LIKES</div>
+    </div>
+    <div>
+      <div className="text-2xl font-bold">{post.stats.comments}</div>
+      <div className="text-xs text-zinc-500">COMMENTS</div>
+    </div>
+    <div>
+      <div className="text-2xl font-bold">{post.stats.reposts}</div>
+      <div className="text-xs text-zinc-500">REPOSTS</div>
+    </div>
+  </div>
+
+  {/* 2. Company Info + Metadata */}
+  <div className="flex items-center gap-3 mb-4">
+    {/* Company logo (w-12 h-12 rounded-full) */}
+    {/* Company name, date, category badge */}
+  </div>
+
+  {/* 3. Media Preview - FULL IMAGE VISIBLE */}
+  {/* Key attributes:
+      - Wrapper: bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4
+      - Image: object-contain (NOT object-cover)
+      - Max height: max-h-[600px] for single images
+      - Margins on sides (gray background visible)
+  */}
+  {post.document?.thumbnail && (
+    <div className="mb-4 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4">
+      <img
+        src={post.document.thumbnail}
+        className="max-w-full h-auto max-h-[600px] object-contain rounded-lg"
+      />
+    </div>
+  )}
+
+  {/* 4. Post Text Content */}
+  <p className="text-zinc-700 dark:text-zinc-300 mb-4 line-clamp-4 leading-relaxed">
+    {post.text_content}
+  </p>
+
+  {/* 5. View on LinkedIn Link */}
+</article>
+```
+
+**Design Principles:**
+1. **Metrics First**: Engagement numbers prominently displayed at top
+2. **Full Image Visibility**: Use `object-contain` to show entire image (top to bottom)
+3. **Margins on Images**: Gray background (`bg-zinc-100`) with padding creates margins
+4. **No Cropping**: Images scale to fit, never crop
+5. **Consistent Spacing**: Use mb-4 for section spacing
+6. **NO duplicate stats**: Remove bottom engagement stats (already at top)
 
 ## API Layer
 
